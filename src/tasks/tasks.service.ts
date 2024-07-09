@@ -14,9 +14,10 @@ export class TasksService {
     return this.tasksRepostory.getTasks(filterDto, user);
   }
 
-  async getTaskById(id: string): Promise<Task> {
+  async getTaskById(id: string, user: User): Promise<Task> {
     const found = await this.tasksRepostory.findOneBy({
-      id: id,
+      id,
+      user,
     });
 
     if (!found) {
@@ -26,8 +27,11 @@ export class TasksService {
     return found;
   }
 
-  async deleteTask(id: string): Promise<void> {
-    const result = await this.tasksRepostory.delete(id);
+  async deleteTask(id: string, user: User): Promise<void> {
+    const result = await this.tasksRepostory.delete({
+      id,
+      user,
+    });
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID: ${id} not found`);
     }
@@ -36,9 +40,10 @@ export class TasksService {
   async updateTaskStatus(
     id: string,
     updateTaskStatusDto: UpdateTaskStatusDto,
+    user: User,
   ): Promise<Task> {
     const { status } = updateTaskStatusDto;
-    const task = await this.getTaskById(id);
+    const task = await this.getTaskById(id, user);
 
     task.status = status;
     await this.tasksRepostory.save(task);
